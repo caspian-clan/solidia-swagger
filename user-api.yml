@@ -1,0 +1,13 @@
+openapi: "3.0.0"
+info:
+  title: User API overview
+  version: 1.0.0
+paths:
+  /api/v1/user/register:
+    post:
+      operationId: registerUser
+      summary: Register a user to Solidia system
+      responses:
+        '200':
+          description: |-
+            200 response
