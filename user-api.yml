@@ -1,6 +1,7 @@
 openapi: "3.0.0"
 info:
   title: User API overview
+  description: Manages users registration, login, removal.
   version: 1.0.0
 paths:
   /api/v1/user/register:
@@ -9,5 +10,15 @@ paths:
       summary: Register a user to Solidia system
       responses:
         '200':
-          description: |-
-            200 response
+          description: a response with success message and status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  error:
+                    type: string
