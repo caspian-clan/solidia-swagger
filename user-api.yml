@@ -4,21 +4,300 @@ info:
   description: Manages users registration, login, removal.
   version: 1.0.0
 paths:
-  /api/v1/user/register:
+  /api/v1/users/register:
     post:
       operationId: registerUser
       summary: Register a user to Solidia system
+      requestBody:
+        description: Following parameters are required, must be declared otherwise you get 400 (bad request) response.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  required: true
+                email:
+                  type: string
+                  required: true
+                password:
+                  type: string
+                  required: true
+              example:
+                username: jackjackson
+                email: jack@gmail.com
+                password: jack12345
       responses:
-        '200':
-          description: a response with success message and status
+        '201':
+          description: Returns newly created user
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
+                  id:
+                    type: string
+                  firstName:
+                    type: string
+                  lastName:
+                    type: string
+                  username:
+                    type: string
+                    required: true
+                  email:
+                    type: string
+                    required: true
+                  password:
+                    type: string
+                    required: true
+                  language:
+                    type: string
+                  status:
+                    type: string
+                  authorities:
+                    type: array
+                    items:
+                      - type: string
+                  createdBy:
+                    type: string
+                  createdDate:
+                    type: string
+                  lastModifiedBy:
+                    type: string
+                  lastModifiedDate:
+                    type: string
+              examples:
+                userRegistrationExample:
+                  value: |
+                    {
+                      "createdBy": null,
+                      "createdDate": "2023-09-04T05:45:52.486453600Z",
+                      "lastModifiedBy": null,
+                      "lastModifiedDate": "2023-09-04T05:45:52.486453600Z",
+                      "id": "usr-a7e6b1ca-a2a9-4bd2-9df8-00c0902b09f8",
+                      "firstName": "Jack",
+                      "lastName": "Jackson",
+                      "username": "jackjackson",
+                      "email": "jack@gmail.com",
+                      "password": "$2a$10$MjAUYOW6kTE/RquhCcqBm.MTWZIjX3yThpAwUE6w1IL0dSSZXs2QC",
+                      "language": "EN",
+                      "status": "NOT_ACTIVATED",
+                      "authorities": []
+                    }
+        '400':
+          description: returns when input values are not valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  errors:
+                    type: array
+                    items:
+                      description: can return more than one object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                        field:
+                          type: string
+                  metadata:
+                    type: object
+                    properties:
+                      solidiaVersion:
+                        type: string
+                      apiVersion:
+                        type: string
+              examples:
+                userBadRequestRegistration:
+                  value: |
+                    {
+                        "status": 400,
+                        "errors": [
+                            {
+                                "code": "validation.error",
+                                "message": "size must be between 8 and 100",
+                                "field": "password"
+                            },
+                            {
+                                "code": "validation.error",
+                                "message": "must be a well-formed email address",
+                                "field": "email"
+                            },
+                            {
+                                "code": "validation.error",
+                                "message": "size must be between 4 and 60",
+                                "field": "username"
+                            }
+                        ],
+                        "metadata": {
+                            "solidiaVersion": "1.0.0-SNAPSHOT",
+                            "apiVersion": "v1"
+                        }
+                    }
+  /api/v1/users/activate?key={key}:
+    get:
+      operationId: activateUser
+      summary: Activate registered user with activation key
+      parameters:
+        - in: query
+          name: key
+          schema:
+            type: string
+          required: true
+          description: Activation id of the user that will send to the email alongside activation link
+      responses:
+        '200':
+          description: returns when activation key is valid and user activated, after activation, key will be removed from database
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
                   message:
                     type: string
-                  error:
+                  currentTime:
                     type: string
+              examples:
+                userActivationResponse:
+                  value: |
+                    {
+                        "code": "user.activation",
+                        "message": "User mammadyahyayev is activated",
+                        "currentTime": "2023-09-04T10:04:26.348339"
+                    }
+        '404':
+          description: returns when activation key not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  errors:
+                    type: array
+                    items:
+                      description: can return more than one object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                        field:
+                          type: string
+                  metadata:
+                    type: object
+                    properties:
+                      solidiaVersion:
+                        type: string
+                      apiVersion:
+                        type: string
+              examples:
+                userActivationKeyNotFound:
+                  value: |
+                    {
+                        "status": 404,
+                        "errors": [
+                            {
+                                "code": "user.not.found",
+                                "message": "No user was found for given activation key",
+                                "field": null
+                            }
+                        ],
+                        "metadata": {
+                            "solidiaVersion": "1.0.0-SNAPSHOT",
+                            "apiVersion": "v1"
+                        }
+                    }
+  /api/v1/users/authenticate:
+    get:
+      operationId: authenticateUser
+      summary: Authenticate (or login) user and returns token
+      requestBody:
+        description: Following parameters are required, must be declared otherwise you get 400 (bad request) response.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  required: true
+                password:
+                  type: string
+                  required: true
+                rememberMe:
+                  type: string
+                  required: false
+                  description: if rememberMe is true, it will hold user token validity longer
+              example:
+                username: jackjackson
+                password: jack12345
+                rememberMe: true
+      responses:
+        '200':
+          description: returns JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+              examples:
+                authenticatedUserResponse:
+                  value: |
+                    {
+                        "token": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJtYW1tYWR5YWh5YXlldiIsImF1dGgiOiIiLCJleHAiOjE2OTM4MjM3NjJ9.aBYdUaSXZFEJMRSuSFuTfu1JGX7Hg0mNgvYmEsRa3hsk8qdjaGkg5StW0AXzu2gvqzlmDKb1MK-Gh7d_8w6Seg"
+                    }
+        '404':
+          description: Returns when username not found in the database
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  errors:
+                    type: array
+                    items:
+                      description: can return more than one object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                        field:
+                          type: string
+                  metadata:
+                    type: object
+                    properties:
+                      solidiaVersion:
+                        type: string
+                      apiVersion:
+                        type: string
+              examples:
+                userNotFound:
+                  value: |
+                    {
+                        "status": 404,
+                        "errors": [
+                            {
+                                "code": "user.not.found",
+                                "message": "User jackjackson was not found in the database",
+                                "field": null
+                            }
+                        ],
+                        "metadata": {
+                            "solidiaVersion": "1.0.0-SNAPSHOT",
+                            "apiVersion": "v1"
+                        }
+                    }
