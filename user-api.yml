@@ -4,6 +4,97 @@ info:
   description: Manages users registration, login, removal.
   version: 1.0.0
 paths:
+  /api/v1/users:
+    get:
+      operationId: getAllUsers
+      summary: Fetched all users (Admin only operation)
+      responses:
+        '200':
+          description: Returns all users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  firstName:
+                    type: string
+                    description: name of the user
+                  lastName:
+                    type: string
+                    description: surname of the user
+                  username:
+                    type: string
+                    required: true
+                  email:
+                    type: string
+                    format: email
+                    required: true
+                  password:
+                    type: string
+                    format: password
+                    required: true
+                  language:
+                    type: string
+                    enum:
+                      - AZ
+                      - EN
+                      - RU
+                      - TR
+                  status:
+                    type: string
+                    enum:
+                      - ACTIVATED
+                      - NOT_ACTIVATED
+                  authorities:
+                    type: array
+                    items:
+                      - type: string
+                  createdBy:
+                    type: string
+                  createdDate:
+                    type: string
+                  lastModifiedBy:
+                    type: string
+                  lastModifiedDate:
+                    type: string
+              examples:
+                getAllUsersExample:
+                  value: |
+                    [
+                      {
+                        "createdBy": null,
+                        "createdDate": "2023-09-04T05:45:52.486453600Z",
+                        "lastModifiedBy": null,
+                        "lastModifiedDate": "2023-09-04T05:45:52.486453600Z",
+                        "id": "usr-a7e6b1ca-a2a9-4bd2-9df8-00c0902b09f8",
+                        "firstName": "Jack",
+                        "lastName": "Jackson",
+                        "username": "jackjackson",
+                        "email": "jack@gmail.com",
+                        "password": "$2a$10$MjAUYOW6kTE/RquhCcqBm.MTWZIjX3yThpAwUE6w1IL0dSSZXs2QC",
+                        "language": "EN",
+                        "status": "NOT_ACTIVATED",
+                        "authorities": []
+                      },
+                      {
+                          "createdBy": null,
+                          "createdDate": "2023-09-04T05:45:52.486453600Z",
+                          "lastModifiedBy": null,
+                          "lastModifiedDate": "2023-09-04T05:45:52.486453600Z",
+                          "id": "usr-a136b1ca-a134-4bd2-9df8-33c09op409f8",
+                          "firstName": "Rose",
+                          "lastName": "Roseson",
+                          "username": "roserose",
+                          "email": "rose@gmail.com",
+                          "password": "$2a$10$MjAUYOW6kTE/Rquhdfa131.MTWZIjX3yThpAwUE6w1IL0dSSZd12ax",
+                          "language": "RU",
+                          "status": "ACTIVATED",
+                          "authorities": []
+                        },
+                    ]
   /api/v1/users/register:
     post:
       operationId: registerUser
@@ -269,7 +360,6 @@ paths:
                   errors:
                     type: array
                     items:
-                      description: can return more than one object
                       properties:
                         code:
                           type: string
@@ -293,6 +383,301 @@ paths:
                             {
                                 "code": "user.not.found",
                                 "message": "User jackjackson was not found in the database",
+                                "field": null
+                            }
+                        ],
+                        "metadata": {
+                            "solidiaVersion": "1.0.0-SNAPSHOT",
+                            "apiVersion": "v1"
+                        }
+                    }
+  /api/v1/users/request-activation-email:
+    post:
+      operationId: requestActivationEmail
+      summary: Send activation email again for users those who missed activating their accounts
+      requestBody:
+        description: Email must be declared and valid otherwise you get 400 (bad request) response.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  required: true
+              example:
+                email: jack@gmail.com
+      responses:
+        '200':
+          description: Send activation email to user's email
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  currentTime:
+                    type: string
+              examples:
+                activationEmailRequest:
+                  value: |
+                    {
+                        "code": "user.activation",
+                        "message": "Activation email is sent to jack@gmail.com",
+                        "timestamp": "2023-09-08T21:43:27.6415537"
+                    }
+
+  /api/v1/users/{username}:
+    get:
+      operationId: getUserByUsername
+      summary: Get user by username.
+      parameters:
+        - in: path
+          name: username
+          schema:
+            type: string
+          required: true
+          description: username of User
+          example: jackjackson
+      responses:
+        '200':
+          description: Returns user by username.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  currentTime:
+                    type: string
+              examples:
+                activationEmailRequest:
+                  value: |
+                    {
+                      "createdBy": null,
+                      "createdDate": "2023-09-04T05:45:52.486453600Z",
+                      "lastModifiedBy": null,
+                      "lastModifiedDate": "2023-09-04T05:45:52.486453600Z",
+                      "id": "usr-a7e6b1ca-a2a9-4bd2-9df8-00c0902b09f8",
+                      "firstName": "Jack",
+                      "lastName": "Jackson",
+                      "username": "jackjackson",
+                      "email": "jack@gmail.com",
+                      "password": "$2a$10$MjAUYOW6kTE/RquhCcqBm.MTWZIjX3yThpAwUE6w1IL0dSSZXs2QC",
+                      "language": "EN",
+                      "status": "NOT_ACTIVATED",
+                      "authorities": []
+                    }
+    put:
+      operationId: updateUser
+      summary: Updates user
+      requestBody:
+        description: Following parameters are required, must be declared otherwise you get 400 (bad request) response.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  required: true
+                email:
+                  type: string
+                  required: true
+                password:
+                  type: string
+                  required: true
+              example:
+                username: jackjackson2
+                email: jack2@gmail.com
+                password: jack123452
+      responses:
+        '200':
+          description: Returns newly updated user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  firstName:
+                    type: string
+                  lastName:
+                    type: string
+                  username:
+                    type: string
+                    required: true
+                  email:
+                    type: string
+                    required: true
+                  password:
+                    type: string
+                    required: true
+                  language:
+                    type: string
+                  status:
+                    type: string
+                  authorities:
+                    type: array
+                    items:
+                      - type: string
+                  createdBy:
+                    type: string
+                  createdDate:
+                    type: string
+                  lastModifiedBy:
+                    type: string
+                  lastModifiedDate:
+                    type: string
+              examples:
+                userUpdateExample:
+                  value: |
+                    {
+                      "createdBy": null,
+                      "createdDate": "2023-09-04T05:45:52.486453600Z",
+                      "lastModifiedBy": null,
+                      "lastModifiedDate": "2023-09-04T05:45:52.486453600Z",
+                      "id": "usr-a7e6b1ca-a2a9-4bd2-9df8-00c0902b09f8",
+                      "firstName": "Jack",
+                      "lastName": "Jackson",
+                      "username": "jackjackson2",
+                      "email": "jack2@gmail.com",
+                      "password": "$2a$10$MjAUYOW6kTE/RquhCcqBm.MTWZIjX3yThpAwUE6w1IL0dSSZa341",
+                      "language": "EN",
+                      "status": "ACTIVATED",
+                      "authorities": []
+                    }
+        '400':
+          description: returns when input values are not valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  errors:
+                    type: array
+                    items:
+                      description: can return more than one object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                        field:
+                          type: string
+                  metadata:
+                    type: object
+                    properties:
+                      solidiaVersion:
+                        type: string
+                      apiVersion:
+                        type: string
+              examples:
+                userBadRequestRegistration:
+                  value: |
+                    {
+                        "status": 400,
+                        "errors": [
+                            {
+                                "code": "validation.error",
+                                "message": "size must be between 8 and 100",
+                                "field": "password"
+                            },
+                            {
+                                "code": "validation.error",
+                                "message": "must be a well-formed email address",
+                                "field": "email"
+                            },
+                            {
+                                "code": "validation.error",
+                                "message": "size must be between 4 and 60",
+                                "field": "username"
+                            }
+                        ],
+                        "metadata": {
+                            "solidiaVersion": "1.0.0-SNAPSHOT",
+                            "apiVersion": "v1"
+                        }
+                    }
+
+    delete:
+      operationId: deleteUserByUsername
+      summary: Delete user by username. Only admins can delete users.
+      parameters:
+        - in: path
+          name: username
+          schema:
+            type: string
+          required: true
+          description: username of User
+          example: jackjackson
+      responses:
+        '200':
+          description: User successfully deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  currentTime:
+                    type: string
+              examples:
+                activationEmailRequest:
+                  value: |
+                    {
+                        "code": "user.deleted",
+                        "message": "User jackjackson deleted.",
+                        "timestamp": "2023-09-09T13:11:42.8850256"
+                    }
+
+        '403':
+          description: Non admin doesn't have permission to perform deletion of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  errors:
+                    type: array
+                    items:
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                        field:
+                          type: string
+                  metadata:
+                    type: object
+                    properties:
+                      solidiaVersion:
+                        type: string
+                      apiVersion:
+                        type: string
+              examples:
+                userNotFound:
+                  value: |
+                    {
+                        "status": 403,
+                        "errors": [
+                            {
+                                "code": "access.denied",
+                                "message": "You don't have permission to perform this operation!",
                                 "field": null
                             }
                         ],
