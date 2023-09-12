@@ -1,12 +1,28 @@
-openapi: "3.0.0"
+openapi: "3.1.0"
+
 info:
   title: User API overview
   description: Manages users registration, login, removal.
   version: 1.0.0
+  contact:
+    name: API Support
+    url: "https://www.solidia.com/support"
+    email: "support@solidia.com"
+
+servers:
+  - url: http://www.localhost:9999/
+    description: "Backend Server REST API"
+  - url: http://www.localhost:5434/
+    description: "PostgresSQL Server"
+  - url: http://www.localhost:4444/
+    description: "Swagger Server"
+
 paths:
   /api/v1/users:
     get:
       operationId: getAllUsers
+      tags:
+        - Get Operations
       summary: Fetched all users (Admin only operation)
       responses:
         '200':
@@ -14,111 +30,25 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    format: uuid
-                  firstName:
-                    type: string
-                    description: name of the user
-                  lastName:
-                    type: string
-                    description: surname of the user
-                  username:
-                    type: string
-                    required: true
-                  email:
-                    type: string
-                    format: email
-                    required: true
-                  password:
-                    type: string
-                    format: password
-                    required: true
-                  language:
-                    type: string
-                    enum:
-                      - AZ
-                      - EN
-                      - RU
-                      - TR
-                  status:
-                    type: string
-                    enum:
-                      - ACTIVATED
-                      - NOT_ACTIVATED
-                  authorities:
-                    type: array
-                    items:
-                      - type: string
-                  createdBy:
-                    type: string
-                  createdDate:
-                    type: string
-                  lastModifiedBy:
-                    type: string
-                  lastModifiedDate:
-                    type: string
-              examples:
-                getAllUsersExample:
-                  value: |
-                    [
-                      {
-                        "createdBy": null,
-                        "createdDate": "2023-09-04T05:45:52.486453600Z",
-                        "lastModifiedBy": null,
-                        "lastModifiedDate": "2023-09-04T05:45:52.486453600Z",
-                        "id": "usr-a7e6b1ca-a2a9-4bd2-9df8-00c0902b09f8",
-                        "firstName": "Jack",
-                        "lastName": "Jackson",
-                        "username": "jackjackson",
-                        "email": "jack@gmail.com",
-                        "password": "$2a$10$MjAUYOW6kTE/RquhCcqBm.MTWZIjX3yThpAwUE6w1IL0dSSZXs2QC",
-                        "language": "EN",
-                        "status": "NOT_ACTIVATED",
-                        "authorities": []
-                      },
-                      {
-                          "createdBy": null,
-                          "createdDate": "2023-09-04T05:45:52.486453600Z",
-                          "lastModifiedBy": null,
-                          "lastModifiedDate": "2023-09-04T05:45:52.486453600Z",
-                          "id": "usr-a136b1ca-a134-4bd2-9df8-33c09op409f8",
-                          "firstName": "Rose",
-                          "lastName": "Roseson",
-                          "username": "roserose",
-                          "email": "rose@gmail.com",
-                          "password": "$2a$10$MjAUYOW6kTE/Rquhdfa131.MTWZIjX3yThpAwUE6w1IL0dSSZd12ax",
-                          "language": "RU",
-                          "status": "ACTIVATED",
-                          "authorities": []
-                        },
-                    ]
+                type: array
+                items:
+                  - type: object
+                    $ref: "#/components/schemas/userObject"
+
   /api/v1/users/register:
     post:
+      tags:
+        - Post Operations
       operationId: registerUser
       summary: Register a user to Solidia system
       requestBody:
         description: Following parameters are required, must be declared otherwise you get 400 (bad request) response.
+        required: true
         content:
           application/json:
             schema:
               type: object
-              properties:
-                username:
-                  type: string
-                  required: true
-                email:
-                  type: string
-                  required: true
-                password:
-                  type: string
-                  required: true
-              example:
-                username: jackjackson
-                email: jack@gmail.com
-                password: jack12345
+              $ref: "#/components/schemas/userDtoObject"
       responses:
         '201':
           description: Returns newly created user
@@ -126,112 +56,20 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  id:
-                    type: string
-                  firstName:
-                    type: string
-                  lastName:
-                    type: string
-                  username:
-                    type: string
-                    required: true
-                  email:
-                    type: string
-                    required: true
-                  password:
-                    type: string
-                    required: true
-                  language:
-                    type: string
-                  status:
-                    type: string
-                  authorities:
-                    type: array
-                    items:
-                      - type: string
-                  createdBy:
-                    type: string
-                  createdDate:
-                    type: string
-                  lastModifiedBy:
-                    type: string
-                  lastModifiedDate:
-                    type: string
-              examples:
-                userRegistrationExample:
-                  value: |
-                    {
-                      "createdBy": null,
-                      "createdDate": "2023-09-04T05:45:52.486453600Z",
-                      "lastModifiedBy": null,
-                      "lastModifiedDate": "2023-09-04T05:45:52.486453600Z",
-                      "id": "usr-a7e6b1ca-a2a9-4bd2-9df8-00c0902b09f8",
-                      "firstName": "Jack",
-                      "lastName": "Jackson",
-                      "username": "jackjackson",
-                      "email": "jack@gmail.com",
-                      "password": "$2a$10$MjAUYOW6kTE/RquhCcqBm.MTWZIjX3yThpAwUE6w1IL0dSSZXs2QC",
-                      "language": "EN",
-                      "status": "NOT_ACTIVATED",
-                      "authorities": []
-                    }
+                $ref: "#/components/schemas/userObject"
         '400':
-          description: returns when input values are not valid
+          description: Returns **400 (bad request)** when input values are not valid.
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  status:
-                    type: integer
-                  errors:
-                    type: array
-                    items:
-                      description: can return more than one object
-                      properties:
-                        code:
-                          type: string
-                        message:
-                          type: string
-                        field:
-                          type: string
-                  metadata:
-                    type: object
-                    properties:
-                      solidiaVersion:
-                        type: string
-                      apiVersion:
-                        type: string
-              examples:
-                userBadRequestRegistration:
-                  value: |
-                    {
-                        "status": 400,
-                        "errors": [
-                            {
-                                "code": "validation.error",
-                                "message": "size must be between 8 and 100",
-                                "field": "password"
-                            },
-                            {
-                                "code": "validation.error",
-                                "message": "must be a well-formed email address",
-                                "field": "email"
-                            },
-                            {
-                                "code": "validation.error",
-                                "message": "size must be between 4 and 60",
-                                "field": "username"
-                            }
-                        ],
-                        "metadata": {
-                            "solidiaVersion": "1.0.0-SNAPSHOT",
-                            "apiVersion": "v1"
-                        }
-                    }
+                $ref: "#/components/schemas/errorResponseObject"
+
+
   /api/v1/users/activate?key={key}:
     get:
+      tags:
+        - Get Operations
       operationId: activateUser
       summary: Activate registered user with activation key
       parameters:
@@ -243,137 +81,68 @@ paths:
           description: Activation id of the user that will send to the email alongside activation link
       responses:
         '200':
-          description: returns when activation key is valid and user activated, after activation, key will be removed from database
+          description: Returns when activation key is valid and user activated, after activation, key will be removed from database
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: string
-                  message:
-                    type: string
-                  currentTime:
-                    type: string
-              examples:
-                userActivationResponse:
-                  value: |
-                    {
-                        "code": "user.activation",
-                        "message": "User mammadyahyayev is activated",
-                        "currentTime": "2023-09-04T10:04:26.348339"
-                    }
+                $ref: "#/components/schemas/successResponseObject"
+
         '404':
-          description: returns when activation key not found
+          description: Returns **404 (not found)** when **activation key not found.**
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  status:
-                    type: integer
-                  errors:
-                    type: array
-                    items:
-                      description: can return more than one object
-                      properties:
-                        code:
-                          type: string
-                        message:
-                          type: string
-                        field:
-                          type: string
-                  metadata:
-                    type: object
-                    properties:
-                      solidiaVersion:
-                        type: string
-                      apiVersion:
-                        type: string
+                $ref: "#/components/schemas/errorResponseObject"
               examples:
-                userActivationKeyNotFound:
+                keyNotFound:
                   value: |
                     {
-                        "status": 404,
-                        "errors": [
-                            {
-                                "code": "user.not.found",
-                                "message": "No user was found for given activation key",
-                                "field": null
-                            }
-                        ],
-                        "metadata": {
-                            "solidiaVersion": "1.0.0-SNAPSHOT",
-                            "apiVersion": "v1"
+                      "status": 404,
+                      "errors": [
+                        {
+                          "code": "user.not.found",
+                          "message": "No user was found for given activation key",
+                          "field": null
                         }
+                      ],
+                      "metadata": {
+                        "solidiaVersion": "1.0.0-SNAPSHOT",
+                        "apiVersion": "v1"
+                      }
                     }
+  
+
   /api/v1/users/authenticate:
     get:
+      tags:
+        - Get Operations
       operationId: authenticateUser
       summary: Authenticate (or login) user and returns token
       requestBody:
         description: Following parameters are required, must be declared otherwise you get 400 (bad request) response.
+        required: true
         content:
           application/json:
             schema:
               type: object
-              properties:
-                username:
-                  type: string
-                  required: true
-                password:
-                  type: string
-                  required: true
-                rememberMe:
-                  type: string
-                  required: false
-                  description: if rememberMe is true, it will hold user token validity longer
-              example:
-                username: jackjackson
-                password: jack12345
-                rememberMe: true
+              $ref: "#/components/schemas/loginDtoObject"
       responses:
         '200':
-          description: returns JWT token
+          description: returns **JWT token**
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-              examples:
-                authenticatedUserResponse:
-                  value: |
-                    {
-                        "token": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJtYW1tYWR5YWh5YXlldiIsImF1dGgiOiIiLCJleHAiOjE2OTM4MjM3NjJ9.aBYdUaSXZFEJMRSuSFuTfu1JGX7Hg0mNgvYmEsRa3hsk8qdjaGkg5StW0AXzu2gvqzlmDKb1MK-Gh7d_8w6Seg"
-                    }
+              $ref: "#/components/schemas/jwtTokenObject"
+
         '404':
-          description: Returns when username not found in the database
+          description: Returns **404 (bad request)** when username not found in the database
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  status:
-                    type: integer
-                  errors:
-                    type: array
-                    items:
-                      properties:
-                        code:
-                          type: string
-                        message:
-                          type: string
-                        field:
-                          type: string
-                  metadata:
-                    type: object
-                    properties:
-                      solidiaVersion:
-                        type: string
-                      apiVersion:
-                        type: string
+                $ref: "#/components/schemas/errorResponseObject"
               examples:
                 userNotFound:
                   value: |
@@ -391,22 +160,23 @@ paths:
                             "apiVersion": "v1"
                         }
                     }
+  
+
   /api/v1/users/request-activation-email:
     post:
+      tags:
+        - Post Operations
       operationId: requestActivationEmail
-      summary: Send activation email again for users those who missed activating their accounts
+      summary: Send activation email again users those who *missed activating their accounts*
       requestBody:
         description: Email must be declared and valid otherwise you get 400 (bad request) response.
+        required: true
         content:
           application/json:
             schema:
               type: object
-              properties:
-                email:
-                  type: string
-                  required: true
-              example:
-                email: jack@gmail.com
+              $ref: "#/components/schemas/requestActivationEmailObject"
+
       responses:
         '200':
           description: Send activation email to user's email
@@ -414,13 +184,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: string
-                  message:
-                    type: string
-                  currentTime:
-                    type: string
+                $ref: "#/components/schemas/successResponseObject"
               examples:
                 activationEmailRequest:
                   value: |
@@ -432,6 +196,8 @@ paths:
 
   /api/v1/users/{username}:
     get:
+      tags:
+        - Get Operations
       operationId: getUserByUsername
       summary: Get user by username.
       parameters:
@@ -449,13 +215,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: string
-                  message:
-                    type: string
-                  currentTime:
-                    type: string
+                $ref: "#/components/schemas/userObject"
               examples:
                 activationEmailRequest:
                   value: |
@@ -469,73 +229,36 @@ paths:
                       "lastName": "Jackson",
                       "username": "jackjackson",
                       "email": "jack@gmail.com",
-                      "password": "$2a$10$MjAUYOW6kTE/RquhCcqBm.MTWZIjX3yThpAwUE6w1IL0dSSZXs2QC",
                       "language": "EN",
                       "status": "NOT_ACTIVATED",
-                      "authorities": []
+                      "authorities": [
+                        {
+                          name: "ROLE_USER"
+                        }
+                      ]
                     }
     put:
+      tags:
+        - Put Operations
       operationId: updateUser
       summary: Updates user
       requestBody:
-        description: Following parameters are required, must be declared otherwise you get 400 (bad request) response.
+        description: Following parameters are required, must be declared otherwise you get **400 (bad request)** response.
+        required: true
         content:
           application/json:
             schema:
               type: object
-              properties:
-                username:
-                  type: string
-                  required: true
-                email:
-                  type: string
-                  required: true
-                password:
-                  type: string
-                  required: true
-              example:
-                username: jackjackson2
-                email: jack2@gmail.com
-                password: jack123452
+              $ref: "#/components/schemas/loginDtoObject"
+
       responses:
         '200':
-          description: Returns newly updated user
+          description: Returns **200 OK** when User is updated successfully.
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  id:
-                    type: string
-                  firstName:
-                    type: string
-                  lastName:
-                    type: string
-                  username:
-                    type: string
-                    required: true
-                  email:
-                    type: string
-                    required: true
-                  password:
-                    type: string
-                    required: true
-                  language:
-                    type: string
-                  status:
-                    type: string
-                  authorities:
-                    type: array
-                    items:
-                      - type: string
-                  createdBy:
-                    type: string
-                  createdDate:
-                    type: string
-                  lastModifiedBy:
-                    type: string
-                  lastModifiedDate:
-                    type: string
+                $ref: "#/components/schemas/userObject"
               examples:
                 userUpdateExample:
                   value: |
@@ -549,38 +272,21 @@ paths:
                       "lastName": "Jackson",
                       "username": "jackjackson2",
                       "email": "jack2@gmail.com",
-                      "password": "$2a$10$MjAUYOW6kTE/RquhCcqBm.MTWZIjX3yThpAwUE6w1IL0dSSZa341",
                       "language": "EN",
                       "status": "ACTIVATED",
-                      "authorities": []
+                      "authorities": [
+                        {
+                          name: "ROLE_USER"
+                        }
+                      ]
                     }
         '400':
-          description: returns when input values are not valid
+          description: Returns **400 (bad request)** when input values aren't valid.
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  status:
-                    type: integer
-                  errors:
-                    type: array
-                    items:
-                      description: can return more than one object
-                      properties:
-                        code:
-                          type: string
-                        message:
-                          type: string
-                        field:
-                          type: string
-                  metadata:
-                    type: object
-                    properties:
-                      solidiaVersion:
-                        type: string
-                      apiVersion:
-                        type: string
+                $ref: "#/components/schemas/errorResponseObject"
               examples:
                 userBadRequestRegistration:
                   value: |
@@ -610,8 +316,10 @@ paths:
                     }
 
     delete:
+      tags:
+        - Delete Operations
       operationId: deleteUserByUsername
-      summary: Delete user by username. Only admins can delete users.
+      summary: Delete user by username. **Only Admins can delete users**.
       parameters:
         - in: path
           name: username
@@ -622,18 +330,12 @@ paths:
           example: jackjackson
       responses:
         '200':
-          description: User successfully deleted.
+          description: Returns **200 OK** when User is deleted successfully
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  code:
-                    type: string
-                  message:
-                    type: string
-                  currentTime:
-                    type: string
+                $ref: "#/components/schemas/successResponseObject"
               examples:
                 activationEmailRequest:
                   value: |
@@ -644,31 +346,12 @@ paths:
                     }
 
         '403':
-          description: Non admin doesn't have permission to perform deletion of users
+          description: Returns **403 (access denied)** when **non admin** user tries to delete user, because he **doesn't have permission to perform deletion of users**
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  status:
-                    type: integer
-                  errors:
-                    type: array
-                    items:
-                      properties:
-                        code:
-                          type: string
-                        message:
-                          type: string
-                        field:
-                          type: string
-                  metadata:
-                    type: object
-                    properties:
-                      solidiaVersion:
-                        type: string
-                      apiVersion:
-                        type: string
+                $ref: "#/components/schemas/errorResponseObject"
               examples:
                 userNotFound:
                   value: |
@@ -686,3 +369,220 @@ paths:
                             "apiVersion": "v1"
                         }
                     }
+
+components:
+  schemas:
+
+    userObject:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: uuid is randomly generated by system with predefined prefix such as "usr-" which makes debugging process easy
+          readOnly: true
+          example: "usr-a7e6b1ca-a2a9-4bd2-9df8-00c0902b09f8"
+        firstName:
+          type: string
+          description: name of the user
+          maxLength: 50
+          example: "Jack"
+        lastName:
+          type: string
+          description: surname of the user
+          maxLength: 50
+          example: "Jackson"
+        username:
+          type: string
+          nullable: false
+          required: true
+          uniqueItems: true
+          example: "jackjackson"
+        email:
+          type: string
+          format: email
+          required: true
+          uniqueItems: true
+          example: "jack@gmail.com"
+        password:
+          type: string
+          format: password
+          nullable: false
+          required: true
+          readOnly: true
+          description: password is hashed
+          example: "$2a$10$MjAUYOW6kTE/RquhCcqBm.MTWZIjX3yThpAwUE6w1IL0dSSZXs2QC"
+        language:
+          type: string
+          enum:
+            - AZ
+            - EN
+            - RU
+            - TR
+          description: default language is EN
+          example: "AZ"
+        status:
+          type: string
+          enum:
+            - ACTIVATED
+            - NOT_ACTIVATED
+          readOnly: true
+        authorities:
+          type: array
+          items:
+            properties:
+              name:
+                type: string
+                example: "ROLE_ADMIN"
+        createdBy:
+          type: string
+          readOnly: true
+        createdDate:
+          type: string
+          readOnly: true
+        lastModifiedBy:
+          type: string
+          readOnly: true
+        lastModifiedDate:
+          type: string
+          readOnly: true
+
+    loginDtoObject:
+      type: object
+      properties:
+        username:
+          type: string
+          nullable: false
+          required: true
+          uniqueItems: true
+          minLength: 4
+          maxLength: 60
+          example: "jackjackson"
+        password:
+          type: string
+          required: true
+          nullable: false
+          minLength: 8
+          maxLength: 100
+          example: "jack12345"
+        rememberMe:
+          type: string
+          required: false
+          description: if rememberMe is true, it will hold user token validity longer
+          example: true
+
+    userDtoObject:
+      type: object
+      properties:
+        firstName:
+          type: string
+          description: name of the user
+          maxLength: 50
+          example: "Jack"
+        lastName:
+          type: string
+          description: surname of the user
+          maxLength: 50
+          example: "Jackson"
+        username:
+          type: string
+          nullable: false
+          required: true
+          uniqueItems: true
+          example: "jackjackson"
+          minLength: 4
+          maxLength: 60
+        email:
+          type: string
+          format: email
+          required: true
+          uniqueItems: true
+          example: "jack@gmail.com"
+        password:
+          type: string
+          format: password
+          nullable: false
+          required: true
+          example: "jack12345"
+          minLength: 8
+          maxLength: 100
+        language:
+          type: string
+          enum:
+            - AZ
+            - EN
+            - RU
+            - TR
+          description: default language is EN
+          example: "AZ"
+        authorities:
+          type: array
+          items:
+            - type: string
+          example: "ROLE_ADMIN"
+
+    successResponseObject:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "user.activation"
+          readOnly: true
+        message:
+          type: string
+          example: "User mammadyahyayev is activated"
+          readOnly: true
+        currentTime:
+          type: string
+          example: "2023-09-04T10:04:26.348339"
+          readonly: true
+
+    requestActivationEmailObject:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          required: true
+          nullable: false
+          uniqueItems: true
+      example:
+        email: "jack@gmail.com"
+
+    jwtTokenObject:
+      type: object
+      properties:
+        token:
+          type: string
+          readOnly: true
+          example: "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJtYW1tYWR5YWh5YXlldiIsImF1dGgiOiIiLCJleHAiOjE2OTM4MjM3NjJ9.aBYdUaSXZFEJMRSuSFuTfu1JGX7Hg0mNgvYmEsRa3hsk8qdjaGkg5StW0AXzu2gvqzlmDKb1MK-Gh7d_8w6Seg"
+
+    errorResponseObject:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 400
+        errors:
+          type: array
+          items:
+            description: can return more than one error at a time
+            properties:
+              code:
+                type: string
+                example: "validation.error"
+              message:
+                type: string
+                example: "Email is not valid"
+              field:
+                type: string
+                example: "email"
+        metadata:
+          type: object
+          properties:
+            solidiaVersion:
+              type: string
+              example: "1.0.0"
+            apiVersion:
+              type: string
+              example: "v1"
