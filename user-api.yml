@@ -112,7 +112,6 @@ paths:
                         "apiVersion": "v1"
                       }
                     }
-  
 
   /api/v1/users/authenticate:
     get:
@@ -217,31 +216,39 @@ paths:
                 type: object
                 $ref: "#/components/schemas/userObject"
               examples:
-                activationEmailRequest:
+                getUserByUsernameResponse:
                   value: |
                     {
-                      "createdBy": null,
-                      "createdDate": "2023-09-04T05:45:52.486453600Z",
-                      "lastModifiedBy": null,
-                      "lastModifiedDate": "2023-09-04T05:45:52.486453600Z",
-                      "id": "usr-a7e6b1ca-a2a9-4bd2-9df8-00c0902b09f8",
-                      "firstName": "Jack",
-                      "lastName": "Jackson",
-                      "username": "jackjackson",
-                      "email": "jack@gmail.com",
-                      "language": "EN",
-                      "status": "NOT_ACTIVATED",
-                      "authorities": [
-                        {
-                          name: "ROLE_USER"
-                        }
-                      ]
+                        "createdBy": null,
+                        "createdDate": "2023-09-04T05:45:52.486453600Z",
+                        "lastModifiedBy": null,
+                        "lastModifiedDate": "2023-09-04T05:45:52.486453600Z",
+                        "id": "usr-a7e6b1ca-a2a9-4bd2-9df8-00c0902b09f8",
+                        "firstName": "Jack",
+                        "lastName": "Jackson",
+                        "username": "jackjackson",
+                        "email": "jack@gmail.com",
+                        "language": "EN",
+                        "status": "NOT_ACTIVATED",
+                        "authorities": [
+                          {
+                            name: "ROLE_USER"
+                          }
+                        ]
                     }
     put:
       tags:
         - Put Operations
       operationId: updateUser
       summary: Updates user
+      parameters:
+        - in: path
+          name: username
+          schema:
+            type: string
+          required: true
+          description: username of User
+          example: jackjackson
       requestBody:
         description: Following parameters are required, must be declared otherwise you get **400 (bad request)** response.
         required: true
@@ -249,7 +256,7 @@ paths:
           application/json:
             schema:
               type: object
-              $ref: "#/components/schemas/loginDtoObject"
+              $ref: "#/components/schemas/userDtoObject"
 
       responses:
         '200':
@@ -262,6 +269,92 @@ paths:
               examples:
                 userUpdateExample:
                   value: |
+                    {
+                      "createdBy": null,
+                      "createdDate": "2023-09-04T05:45:52.486453600Z",
+                      "lastModifiedBy": null,
+                      "lastModifiedDate": "2023-09-04T05:45:52.486453600Z",
+                      "id": "usr-a7e6b1ca-a2a9-4bd2-9df8-00c0902b09f8",
+                      "firstName": "Jack",
+                      "lastName": "Jackson",
+                      "username": "jackjackson2",
+                      "email": "jack2@gmail.com",
+                      "language": "EN",
+                      "status": "ACTIVATED",
+                      "authorities": [
+                        {
+                          name: "ROLE_USER"
+                        }
+                      ]
+                    }
+        '400':
+          description: Returns **400 (bad request)** when input values aren't valid.
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/errorResponseObject"
+              examples:
+                userBadRequestRegistration:
+                  value: |
+                    {
+                        "status": 400,
+                        "errors": [
+                            {
+                                "code": "validation.error",
+                                "message": "size must be between 8 and 100",
+                                "field": "password"
+                            },
+                            {
+                                "code": "validation.error",
+                                "message": "must be a well-formed email address",
+                                "field": "email"
+                            },
+                            {
+                                "code": "validation.error",
+                                "message": "size must be between 4 and 60",
+                                "field": "username"
+                            }
+                        ],
+                        "metadata": {
+                            "solidiaVersion": "1.0.0-SNAPSHOT",
+                            "apiVersion": "v1"
+                        }
+                    }
+
+    patch:
+      tags:
+        - Patch Operations
+      operationId: updateUserPartially
+      summary: Updates user partially
+      parameters:
+        - in: path
+          name: username
+          schema:
+            type: string
+          required: true
+          description: username of User
+          example: jackjackson
+      requestBody:
+        description: Following parameters aren't required. Define parameters which user wants to change.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: "#/components/schemas/userPatchDtoObject"
+
+      responses:
+        '200':
+          description: Returns **200 OK** when User is updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/userObject"
+              examples:
+                userUpdateExample:
+                  value: |-
                     {
                       "createdBy": null,
                       "createdDate": "2023-09-04T05:45:52.486453600Z",
@@ -517,6 +610,61 @@ components:
           example: "AZ"
         authorities:
           type: array
+          items:
+            - type: string
+          example: "ROLE_ADMIN"
+
+    userPatchDtoObject:
+      type: object
+      description: Parameters of this object will be ignored when they are null. If they are not given in request it is
+        considered that user doesn't want to change that parameter
+      properties:
+        firstName:
+          type: string
+          description: name of the user
+          required: false
+          nullable: true
+          maxLength: 50
+          example: "Jack"
+        lastName:
+          type: string
+          description: surname of the user
+          required: false
+          nullable: true
+          maxLength: 50
+          example: "Jackson"
+        username:
+          type: string
+          required: false
+          nullable: true
+          uniqueItems: true
+          example: "jackjackson"
+          minLength: 4
+          maxLength: 60
+        password:
+          type: string
+          format: password
+          required: false
+          nullable: true
+          example: "jack12345"
+          minLength: 8
+          maxLength: 100
+        language:
+          type: string
+          description: default language is EN
+          required: false
+          nullable: true
+          enum:
+            - AZ
+            - EN
+            - RU
+            - TR
+          example: "AZ"
+        authorities:
+          type: array
+          description: Authorities of user such as Admin, Normal User, Paid User and so on.
+          required: false
+          nullable: true
           items:
             - type: string
           example: "ROLE_ADMIN"
