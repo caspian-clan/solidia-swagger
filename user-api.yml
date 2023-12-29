@@ -48,7 +48,7 @@ paths:
           application/json:
             schema:
               type: object
-              $ref: "#/components/schemas/userDtoObject"
+              $ref: "#/components/schemas/registerDtoObject"
       responses:
         '201':
           description: Returns newly created user
@@ -563,6 +563,31 @@ components:
           required: false
           description: if rememberMe is true, it will hold user token validity longer
           example: true
+
+    registerDtoObject:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          required: true
+          uniqueItems: true
+          example: "jack@gmail.com"
+        username:
+          type: string
+          nullable: false
+          required: true
+          uniqueItems: true
+          minLength: 4
+          maxLength: 60
+          example: "jackjackson"
+        password:
+          type: string
+          required: true
+          nullable: false
+          minLength: 8
+          maxLength: 100
+          example: "jack12345"
 
     userDtoObject:
       type: object
